@@ -18,6 +18,8 @@ import pyopenjtalk
 from jamo import h2j, j2hcj
 from pypinyin import lazy_pinyin, BOPOMOFO
 import jieba, cn2an
+import pycantonese
+import zhconv
 
 
 # This is a list of Korean classifiers preceded by pure Korean numerals.
@@ -207,6 +209,127 @@ _bopomofo_to_romaji = [(re.compile('%s' % x[0], re.IGNORECASE), x[1]) for x in [
   ('？', '?'),
   ('—', '-')
 ]]
+
+# List of (jyutping, ipa) pairs:
+_jyutping_to_dict = [(re.compile('%s' % x[0], re.IGNORECASE), x[1]) for x in [ 
+  ('aau', '嘲'),
+  ('aap', '集'),
+  ('aat', '扎'),
+  ('aak', '责'),
+  ('aa', '丫'),
+  ('au', '周'),
+  ('ap', '汁'),
+  ('at', '侄'),
+  ('ak', '则'),
+  ('a', 'ɐ'),
+  ('eu', '掉'),
+  ('ei', '四'),
+  ('eoi', '需'),
+  ('eot', '询'),
+  ('eo', 'ɵ'),
+  ('ep', '夹'),
+  ('ek', '石'),
+  ('e', 'ɛː'),
+  ('iu', '消'),
+  ('ik', '识'),
+  ('ing', 'ɪŋ'),
+  ('ip', '摄'),
+  ('it', '泄'),
+  ('i', '思'),
+  ('ou', '好'),
+  ('oek', '脚'),
+  ('oe', 'œː'),
+  ('ot', '喝'),
+  ('ok', '学'),
+  ('o', 'ɔː'),
+  ('yut', '雪'),
+  ('yu', '书'),
+  ('ui', '灰'),
+  ('uk', '福'),
+  ('un', '欢'),
+  ('ung', 'ʊŋ'),
+  ('ut', '阔'),
+  ('m', 'm'),
+  ('ng', 'ŋ'),
+  ('i', 'i'),
+  ('u', 'u'),
+  ('n', 'n'),
+  ('p', '怕'),
+  ('t', '他'),
+  ('b', '巴'),
+  ('f', 'f'),
+  ('d', '打'),
+  ('l', 'l'),
+  ('g', '家'),
+  ('k', '卡'),
+  ('h', 'h'),
+  ('gw', '瓜'),
+  ('kw', '夸'),
+  ('w', 'w'),
+  ('z', '渣'),
+  ('c', '叉'),
+  ('s', 's'),
+  ('j', 'j'),
+  ('，', ','),
+  ('。', '.'),
+  ('！', '!'),
+  ('？', '?'),
+  ('—', '-'),
+  ('1', '˥'),
+  ('2', '˧˥'),
+  ('3', '˧'),
+  ('4', '˨˩'),
+  ('5', '˩˧'),
+  ('6', '˨'),
+  ('7', '˥'),
+  ('8', '˧'),
+  ('9', '˨')
+]]
+
+# List of (jyutping, ipa) pairs:
+_jyutping_dict_to_ipa = [(re.compile('%s' % x[0], re.IGNORECASE), x[1]) for x in [ 
+  ('嘲', 'aːu'),
+  ('集', 'aːp'),
+  ('扎', 'aːt'),
+  ('责', 'aːk'),
+  ('丫', 'aː'),
+  ('周', 'ɐu'),
+  ('汁', 'ɐp'),
+  ('侄', 'ɐt'),
+  ('则', 'ɐk'),
+  ('掉', 'ɛːu'),
+  ('四', 'ei'),
+  ('需', 'ɵy'),
+  ('询', 'ɵt'),
+  ('夹', 'ɛːp'),
+  ('石', 'ɛːk'),
+  ('消', 'iːu'),
+  ('识', 'ɪk'),
+  ('摄', 'iːp'),
+  ('泄', 'iːt'),
+  ('思', 'iː'),
+  ('好', 'ou'),
+  ('脚', 'œːk'),
+  ('喝', 'ɔːt'),
+  ('学', 'ɔːk'),
+  ('雪', 'yːt'),
+  ('书', 'yː'),
+  ('灰', 'uːi'),
+  ('福', 'ʊk'),
+  ('欢', 'uːn'),
+  ('阔', 'uːt'),
+  ('怕', 'pʰ'),
+  ('他', 'tʰ'),
+  ('巴', 'p'),
+  ('打', 't'),
+  ('家', 'k'),
+  ('卡', 'kʰ'),
+  ('瓜', 'kw'),
+  ('夸', 'kwʰ'),
+  ('渣', 'ts'),
+  ('叉', 'tsʰ')
+]]
+
 
 
 def expand_abbreviations(text):
@@ -418,6 +541,27 @@ def bopomofo_to_romaji(text):
   return text
 
 
+def chinese_to_jyutping(text):
+  text = text.replace('、','，').replace('；','，').replace('：','，')
+  words = pycantonese.characters_to_jyutping(text)
+  text = ''
+  for word, ping in words:
+    if not ping:
+      text += word
+      continue
+    if text != '':
+      text += ' '
+    text += ''.join(ping)
+  return text
+
+def jyutping_to_ipa(text):
+  for regex, replacement in _jyutping_to_dict:
+    text = re.sub(regex, replacement, text)
+  for regex, replacement in _jyutping_dict_to_ipa:
+    text = re.sub(regex, replacement, text)
+  return text
+
+
 def basic_cleaners(text):
   '''Basic pipeline that lowercases and collapses whitespace without transliteration.'''
   text = lowercase(text)
@@ -485,3 +629,14 @@ def zh_ja_mixture_cleaners(text):
   if re.match('[A-Za-zɯɹəɥ→↓↑]',text[-1]):
     text += '.'
   return text
+
+
+def cantonese_cleaners(text):
+  text = number_to_chinese(text)
+  text = zhconv.convert(text, 'zh-hk')
+  text = chinese_to_jyutping(text)
+  text = jyutping_to_ipa(text)
+  if re.match('˥˧˥˧˨˩˩˧˨˥˧˨', text[-1]):
+    text += '.'
+  return text;
+  

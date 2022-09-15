@@ -32,6 +32,12 @@ _punctuation = ',.!?-~…'
 _letters = 'AEINOQUabdefghijklmnoprstuvwyzʃʧʦɯɹəɥ⁼ʰ`→↓↑ '
 '''
 
+'''# cantonese_cleaners
+_pad        = '_'
+_punctuation = ',.!?-~…'
+_letters = 'ʊŋːɐœɔɛa˥ef˧˨h˩i̩ɪjklmnopʰstuɵwy '
+'''
+
 # Export all symbols:
 symbols = [_pad] + list(_punctuation) + list(_letters)
 
