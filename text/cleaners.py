@@ -274,16 +274,7 @@ _jyutping_to_dict = [(re.compile('%s' % x[0], re.IGNORECASE), x[1]) for x in [
   ('。', '.'),
   ('！', '!'),
   ('？', '?'),
-  ('—', '-'),
-  ('1', '˥'),
-  ('2', '˧˥'),
-  ('3', '˧'),
-  ('4', '˨˩'),
-  ('5', '˩˧'),
-  ('6', '˨'),
-  ('7', '˥'),
-  ('8', '˧'),
-  ('9', '˨')
+  ('—', '-')
 ]]
 
 # List of (jyutping, ipa) pairs:
@@ -326,8 +317,34 @@ _jyutping_dict_to_ipa = [(re.compile('%s' % x[0], re.IGNORECASE), x[1]) for x in
   ('卡', 'kʰ'),
   ('瓜', 'kw'),
   ('夸', 'kwʰ'),
-  ('渣', 'ts'),
-  ('叉', 'tsʰ')
+  ('渣', 'ʦ'),
+  ('叉', 'ʦʰ')
+]]
+
+# List of (cantonese_accent, ipa) pairs:
+_cantonese_accent_to_ipa = [(re.compile('%s' % x[0], re.IGNORECASE), x[1]) for x in [ 
+  ('1', '˥'),
+  ('2', '˧˥'),
+  ('3', '˧'),
+  ('4', '˨˩'),
+  ('5', '˩˧'),
+  ('6', '˨'),
+  ('7', '˥'),
+  ('8', '˧'),
+  ('9', '˨')
+]]
+
+# List of (cantonese_accent, number) pairs:
+_cantonese_accent_to_number = [(re.compile('%s' % x[0], re.IGNORECASE), x[1]) for x in [ 
+  ('1', '1'),
+  ('2', '2'),
+  ('3', '3'),
+  ('4', '4'),
+  ('5', '5'),
+  ('6', '6'),
+  ('7', '1'),
+  ('8', '3'),
+  ('9', '6')
 ]]
 
 
@@ -636,7 +653,9 @@ def cantonese_cleaners(text):
   text = zhconv.convert(text, 'zh-hk')
   text = chinese_to_jyutping(text)
   text = jyutping_to_ipa(text)
-  if re.match('˥˧˥˧˨˩˩˧˨˥˧˨', text[-1]):
+  for regex, replacement in _cantonese_accent_to_number:
+    text = re.sub(regex, replacement, text)
+  if re.match('[1-6˥˧˥˧˨˩]', text[-1]):
     text += '.'
   return text;
   
