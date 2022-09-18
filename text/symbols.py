@@ -35,7 +35,13 @@ _letters = 'AEINOQUabdefghijklmnoprstuvwyzʃʧʦɯɹəɥ⁼ʰ`→↓↑ '
 '''# cantonese_cleaners
 _pad        = '_'
 _punctuation = ',.!?-~…'
-_letters = '123456ʦʊŋːɐœɔɛa˥ef˧˨h˩i̩ɪjklmnopʰstuɵwy '
+_letters = '123456ʦʊŋːɐœɔɛaefhi̩ɪjklmnopʰstuɵwy '
+'''
+
+'''# cantonese_cleaners2
+_pad        = '_'
+_punctuation = ',.!?-~…'
+_letters = 'ʦʊŋːɐœɔɛa˥ef˧˨h˩i̩ɪjklmnopʰstuɵwy '
 '''
 
 # Export all symbols:

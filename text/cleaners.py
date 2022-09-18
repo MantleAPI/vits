@@ -347,6 +347,24 @@ _cantonese_accent_to_number = [(re.compile('%s' % x[0], re.IGNORECASE), x[1]) fo
   ('9', '6')
 ]]
 
+# List of (cantonese_accent, space) pairs:
+_simple_cantonese_map = [(re.compile('%s' % x[0], re.IGNORECASE), x[1]) for x in [ 
+  ('1', ' '),
+  ('2', ' '),
+  ('3', ' '),
+  ('4', ' '),
+  ('5', ' '),
+  ('6', ' '),
+  ('7', ' '),
+  ('8', ' '),
+  ('9', ' '),
+  ('，', ','),
+  ('。', '.'),
+  ('！', '!'),
+  ('？', '?'),
+  ('—', '-')
+]]
+
 
 
 def expand_abbreviations(text):
@@ -655,7 +673,27 @@ def cantonese_cleaners(text):
   text = jyutping_to_ipa(text)
   for regex, replacement in _cantonese_accent_to_number:
     text = re.sub(regex, replacement, text)
-  if re.match('[1-6˥˧˥˧˨˩]', text[-1]):
+  if re.match('[1-6]', text[-1]):
     text += '.'
-  return text;
+  return text
   
+def cantonese_cleaners2(text):
+  text = number_to_chinese(text)
+  text = zhconv.convert(text, 'zh-hk')
+  text = chinese_to_jyutping(text)
+  text = jyutping_to_ipa(text)
+  for regex, replacement in _cantonese_accent_to_ipa:
+    text = re.sub(regex, replacement, text)
+  if re.match('[˥˧˨˩]', text[-1]):
+    text += '.'
+  return text
+
+def simple_cantonese_cleaner(text):
+  text = number_to_chinese(text)
+  text = zhconv.convert(text, 'zh-hk')
+  text = chinese_to_jyutping(text)
+  for regex, replacement in _simple_cantonese_map:
+    text = re.sub(regex, replacement, text)
+  if re.match('[a-zA-Z]', text[-1]):
+    text += '.'
+  return text
